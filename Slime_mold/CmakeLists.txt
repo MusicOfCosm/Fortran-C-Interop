@@ -1,0 +1,68 @@
+# Made with gen-cmake.py
+cmake_minimum_required (VERSION 3.8)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
+enable_language(Fortran)
+
+if (CMAKE_C_COMPILER MATCHES icx)
+  set(CMAKE_C_FLAGS "/Qstd=c17")
+  set(CMAKE_CXX_FLAGS "/Qstd=c++17")
+  set(FFLAGS "/Qopenmp")
+endif()
+
+
+#From the internet (https://cliutils.gitlab.io/modern-cmake/chapters/projects/submodule.html) but modified with CMAKE_SOURCE_DIR
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/../.git")
+# Update submodules as needed
+    option(GIT_SUBMODULE "Check submodules during build" ON)
+    if(GIT_SUBMODULE)
+        message(STATUS "Submodule update")
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
+        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
+    endif()
+endif()
+
+
+#Ridiculous: https://github.com/ocornut/imgui/issues/1144
+set(IMGUI_SOURCE
+  dependencies/external/imgui/imgui.cpp
+  dependencies/external/imgui/imgui_draw.cpp
+  dependencies/external/imgui/imgui_tables.cpp
+  dependencies/external/imgui/imgui_widgets.cpp
+  dependencies/external/imgui/backends/imgui_impl_glfw.cpp
+  dependencies/external/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+
+project("Slime_F")
+
+add_executable(${PROJECT_NAME}
+  main.cpp movement.f90
+  ressources/renderer.cpp
+  ressources/stb_image.c
+
+  dependencies/glew/src/glew.c
+  ${GLFW_SOURCE}
+  ${IMGUI_SOURCE}
+)
+
+add_compile_definitions(GLEW_STATIC _CRT_SECURE_NO_WARNINGS)
+
+add_subdirectory(dependencies/external/glfw)
+
+target_include_directories(${PROJECT_NAME}
+  PUBLIC dependencies/glew/include
+  PUBLIC dependencies/external/glfw/include
+  PUBLIC dependencies/external/glm
+  PUBLIC dependencies/external/imgui
+  PUBLIC dependencies/external/imgui/backends
+)
+
+target_link_directories(${PROJECT_NAME} PRIVATE dependencies/external/glfw/src)
+target_link_libraries(${PROJECT_NAME} glfw)
