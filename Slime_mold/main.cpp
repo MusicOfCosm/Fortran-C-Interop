@@ -170,7 +170,7 @@ int main()
 	// }
 
 	//GLFWimage icon[1];
-	//icon[0].pixels = stbi_load("ressources/Rosace.png", &icon[0].width, &icon[0].height, 0, 4);
+	//icon[0].pixels = stbi_load("../ressources/Rosace.png", &icon[0].width, &icon[0].height, 0, 4);
 	//glfwSetWindowIcon(window, 1, icon);
 	//stbi_image_free(icon[0].pixels);
 
